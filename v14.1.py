@@ -11,13 +11,17 @@ import pickle
 import io
 
 # Create a function to save the DataFrame to Excel
+
+
 def save_excel(df):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         # Select the columns you want to save
-        columns_to_save = ["weld", "surface_quality", "blow_out", "melt_pool_overflow", "weld_through"]
+        columns_to_save = ["weld", "surface_quality",
+                           "blow_out", "melt_pool_overflow", "weld_through"]
         df[columns_to_save].to_excel(writer, index=False)
     return output.getvalue()
+
 
 def serialize_df(df):
     return pickle.dumps(df)
@@ -67,6 +71,7 @@ class SessionState:
         self.intensity_images = []
         self.display_df = False
 
+
 def reset_canvas(image_index, experiment_df):
     st.session_state.image_index = image_index
     st.session_state.canvas_image = {}
@@ -88,12 +93,14 @@ def load_intensity_image(image_path):
         raise ValueError("Unsupported image mode: {}".format(image.mode))
     return image_np
 
+
 def get_start_end_coordinates(image):
     start_x = 0
     start_y = 0
     end_x = image.shape[0]
     end_y = image.shape[1]
     return start_x, start_y, end_x, end_y
+
 
 def capture_weld_logic(intensity_image_path, experiment_df, experiment_folder, start_x, start_y, end_x, end_y, subexperiment_folder, scaling_factor_x, scaling_factor_y, rescaled_width, rescaled_height):
     if st.session_state.canvas_image.image_data is not None:
@@ -118,6 +125,7 @@ def capture_weld_logic(intensity_image_path, experiment_df, experiment_folder, s
             st.session_state['experiment_dfs'] = pd.concat([st.session_state['weld_df'], st.session_state['surface_quality_df'],
                                                             st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'],
                                                             st.session_state['weld_through_df']], axis=1)
+
 
 def main():
     if 'display_df' not in st.session_state:
@@ -159,8 +167,9 @@ def main():
 
     # Hard-code the main folder path
     main_folder_path = "./Triangulation_PreTrials"
+    # *** CHANGE THE MAIN FOLDER PATH: https://www.kaggle.com/code/sarahmacleans/detection-of-weld-defects/notebook
 
-    if 'intensity_images' not in st.session_state:
+s    if 'intensity_images' not in st.session_state:
         # Find all intensity images in the main folder path
         intensity_images = []
         for root, dirs, files in os.walk(main_folder_path):
@@ -249,7 +258,7 @@ def main():
         columns=["melt_pool_overflow"], index=range(0, end_x)).applymap(lambda x: 0)
     st.session_state['weld_through_df'] = pd.DataFrame(
         columns=["weld_through"], index=range(0, end_x)).applymap(lambda x: 0)
-    
+
     # Add the "blowout" to the DataFrame
     experiment_df["blow_out"] = 0
     # Add the "weld_through" to the DataFrame
@@ -270,7 +279,8 @@ def main():
         st.session_state['is_captured'] = False
 
     annotation_mode = st.sidebar.selectbox(
-        "Annotation tool:", ("Weld", "Surface Quality", "Blowout", "Melt Pool Overflow", "Delete Selected Annotation", "Weld Through")
+        "Annotation tool:", ("Weld", "Surface Quality", "Blowout",
+                             "Melt Pool Overflow", "Delete Selected Annotation", "Weld Through")
     )
 
     def get_drawing_mode():
@@ -333,7 +343,7 @@ def main():
             return "#FFFFFF"
         else:
             return "#FF0000"
-    
+
     def update_surface_quality_color(annotation):
         if annotation["type"] == "line":
             old_color = annotation["stroke"]
@@ -411,9 +421,9 @@ def main():
                                                                1, "surface_quality"] = value
                     experiment_df.loc[y1:y2+1, "surface_quality"] = value
                     st.session_state['experiment_dfs'] = pd.concat([st.session_state['weld_df'], st.session_state['surface_quality_df'],
-                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'], 
+                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'],
                                                                     st.session_state['weld_through_df']], axis=1)
-                    
+
     if st.session_state.canvas_image.image_data is not None:
         if st.session_state.canvas_image.json_data is not None:
             for shape in st.session_state.canvas_image.json_data["objects"]:
@@ -422,10 +432,10 @@ def main():
                     y1 = (shape['top'] + shape['y1']) / scaling_factor_x
                     y2 = (shape['top'] + shape['y2']) / scaling_factor_x
                     st.session_state['weld_through_df'].loc[y1:y2 +
-                                                               1, "weld_through"] = 1
+                                                            1, "weld_through"] = 1
                     experiment_df.loc[y1:y2+1, "weld_through"] = 1
                     st.session_state['experiment_dfs'] = pd.concat([st.session_state['weld_df'], st.session_state['surface_quality_df'],
-                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'], 
+                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'],
                                                                     st.session_state['weld_through_df']], axis=1)
 
     if st.session_state.canvas_image.image_data is not None:
@@ -450,12 +460,11 @@ def main():
                     y2 = (shape['top'] + shape['radius']) / \
                         scaling_factor_x
                     st.session_state['melt_pool_overflow_df'].loc[y1:y2 +
-                                                        1, "melt_pool_overflow"] = 1
+                                                                  1, "melt_pool_overflow"] = 1
                     experiment_df.loc[y1:y2+1, "melt_pool_overflow"] = 1
                     st.session_state['experiment_dfs'] = pd.concat([st.session_state['weld_df'], st.session_state['surface_quality_df'],
-                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'], 
+                                                                    st.session_state['blowout_df'], st.session_state['melt_pool_overflow_df'],
                                                                     st.session_state['weld_through_df']], axis=1)
-    
 
     # Add a button to download as Excel
     if st.button("Download Dataframe as Excel"):
@@ -540,6 +549,7 @@ def main():
         else:
             st.error("Invalid sub-experiment index")
 
+
 def save_data(image_id, df, json_data, conn):
     # Serialize the dataframe and JSON data
     df_blob = serialize_df(df)
@@ -555,6 +565,7 @@ def save_data(image_id, df, json_data, conn):
         # Insert the JSON data into the 'json_data' table
         cursor.execute(
             "INSERT OR REPLACE INTO json_data VALUES (?, ?)", (image_id, json_blob))
+
 
 def load_data(image_id, conn):
     with sqlite3.connect('./data/image_annotation_tool_jeno_test1.db') as conn:
@@ -577,11 +588,13 @@ def load_data(image_id, conn):
 
     return df, json_data
 
+
 def add_overall_quality_to_db(image_id, quality, conn):
     with sqlite3.connect('./data/image_annotation_tool_jeno_test1.db') as conn:
         cursor = conn.cursor()
         cursor.execute(
             "INSERT OR REPLACE INTO overall_quality VALUES (?, ?)", (image_id, quality))
+
 
 def get_overall_quality_from_db(image_id, conn):
     with sqlite3.connect('./data/image_annotation_tool_jeno_test1.db') as conn:
@@ -590,6 +603,7 @@ def get_overall_quality_from_db(image_id, conn):
             "SELECT quality FROM overall_quality WHERE image_id = ?", (image_id,))
         row = cursor.fetchone()
     return row[0] if row else None
+
 
 if __name__ == "__main__":
     main()
